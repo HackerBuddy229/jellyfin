@@ -561,6 +561,18 @@ public class LibraryController : BaseJellyfinApiController
     }
 
     /// <summary>
+    /// Finds all library storage locations and uses that to compute and return information about remaining storage on different volumes.
+    /// </summary>
+    /// <returns>Returns a list of all storage volumes and their remaining storage.</returns>
+    [HttpGet("Library/VolumeRemainingStorage")]
+    [Authorize(Policy = Policies.RequiresElevation)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<VolumeDto>> GetVolumeRemainingStorage()
+    {
+        return Ok(_libraryManager.GetRemainingVolumeCapacity());
+    }
+
+    /// <summary>
     /// Reports that new episodes of a series have been added by an external source.
     /// </summary>
     /// <param name="tvdbId">The tvdbId.</param>

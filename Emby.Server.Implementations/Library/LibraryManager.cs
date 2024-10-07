@@ -2,6 +2,7 @@
 #pragma warning disable CA5394
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -46,8 +47,10 @@ using MediaBrowser.Model.Library;
 using MediaBrowser.Model.Querying;
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
+using TagLib.Riff;
 using Episode = MediaBrowser.Controller.Entities.TV.Episode;
 using EpisodeInfo = Emby.Naming.TV.EpisodeInfo;
+using File = System.IO.File;
 using Genre = MediaBrowser.Controller.Entities.Genre;
 using Person = MediaBrowser.Controller.Entities.Person;
 using VideoResolver = Emby.Naming.Video.VideoResolver;
@@ -1156,6 +1159,51 @@ namespace Emby.Server.Implementations.Library
             return _fileSystem.GetDirectoryPaths(_configurationManager.ApplicationPaths.DefaultUserViewsPath)
                 .Select(dir => GetVirtualFolderInfo(dir, topLibraryFolders, refreshQueue))
                 .ToList();
+        }
+
+        /// <summary>
+        /// Gets all volumes storing library data and their remaining disk space.
+        /// </summary>
+        /// <returns>A collection of data volumes and their remaining capacity.</returns>
+        public IEnumerable<VolumeDto> GetRemainingVolumeCapacity()
+        {
+            var volumes = new List<VolumeDto>();
+            var libraries = RootFolder.Children;
+
+            // one for loop of all physical locations
+                // get disk
+                // if disk exists
+                    // add library to disk
+                // else
+                    // create disk and add library to it
+
+            IEnumerable<(string Library, string Location)> libraryLocations =
+                        libraries.SelectMany(library =>
+                            library.PhysicalLocations.Select(location =>
+                                (library.Name, location)));
+
+            foreach (var location in libraryLocations)
+            {
+                var libraryLocationVolume = VolumeHelper.VolumeFromPath(location.Location);
+                var existingVolume = volumes.FirstOrDefault(vol => vol.VolumeIdentifier == libraryLocationVolume.Identifier);
+                if (existingVolume is not null)
+                {
+                    if (existingVolume.LibraryIdentifiers.Any(lib => lib == location.Location))
+                    {
+                        continue;
+                    }
+
+                    existingVolume.LibraryIdentifiers.Add(location.Library);
+                    continue;
+                }
+
+                var newVolume = new VolumeDto(libraryLocationVolume.Identifier);
+                newVolume.LibraryIdentifiers.Add(location.Library);
+                newVolume.SpaceRemaining = new DriveInfo(libraryLocationVolume.Mountpoint).AvailableFreeSpace;
+                volumes.Add(newVolume);
+            }
+
+            return volumes;
         }
 
         private VirtualFolderInfo GetVirtualFolderInfo(string dir, List<BaseItem> allCollectionFolders, HashSet<Guid>? refreshQueue)

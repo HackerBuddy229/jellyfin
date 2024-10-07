@@ -25,10 +25,10 @@ public class VolumeDto
     /// <summary>
     /// Gets or sets the space remaining on the specific volume.
     /// </summary>
-    public int SpaceRemaining { get; set; }
+    public long SpaceRemaining { get; set; }
 
     /// <summary>
     /// Gets or sets the list of LibraryIdentifiers stored on the volume.
     /// </summary>
-    public IEnumerable<string> LibraryIdentifiers { get; set; }
+    public IList<string> LibraryIdentifiers { get; set; }
 }

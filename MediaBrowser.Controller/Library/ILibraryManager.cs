@@ -165,6 +165,12 @@ namespace MediaBrowser.Controller.Library
         /// <returns>IEnumerable{VirtualFolderInfo}.</returns>
         List<VirtualFolderInfo> GetVirtualFolders();
 
+        /// <summary>
+        /// Gets all volumes storing library data and their remaining disk space.
+        /// </summary>
+        /// <returns>A collection of data volumes and their remaining capacity.</returns>
+        public IEnumerable<VolumeDto> GetRemainingVolumeCapacity();
+
         List<VirtualFolderInfo> GetVirtualFolders(bool includeRefreshState);
 
         /// <summary>
